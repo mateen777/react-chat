@@ -1,0 +1,82 @@
+/* #2D033B
+#810CA8
+#C147E9
+#E5B8F4 */
+
+.App {
+  text-align: center;
+  min-height: 100vh;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+.h1{
+
+  color: tomato;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* label{
+  font-size: 22px;
+} */
+
+.username{
+  width: 360px;
+  padding: 12px;
+  font-size: 20px;
+}
+
+.sign-in{
+  margin-top: 32px !important;
+}
+
+.messages{
+  height: calc(100% - 124px);
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+  /* width: 6px;
+  background: transparent; */
+}
+
+/* .scrollbar-hide::-webkit-scrollbar-thumb {
+  background: #2D033B; 
+  border-radius: 10px;
+} */
+
+/* For IE, Edge and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style:none ;  
+  scrollbar-width: none;  /* Firefox */
+}
