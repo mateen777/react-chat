@@ -3,8 +3,8 @@ import file from "../Images/file_upload.png";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { auth, storage, db } from "../firebase";
-import { doc, setDoc } from "firebase/firestore"; 
-import { useNavigate, Link } from "react-router-dom";
+import { doc, setDoc } from "firebase/firestore";
+import { useNavigate, Link, useParams } from "react-router-dom";
 
 function Register() {
   const initialValues = { username: "", email: "", password: "", file: {} };
@@ -14,7 +14,9 @@ function Register() {
   const [isSubmit, setIsSubmit] = useState(false);
   const [imagePath, setImagepath] = useState("");
   const [apiError, setApiError] = useState();
+  const [type, setType] = useState("password");
   const navigate = useNavigate();
+  let { signup } = useParams();
 
   const changeHandler = (e) => {
     const { name, value, files } = e.target;
@@ -51,13 +53,17 @@ function Register() {
     setIsSubmit(true);
 
     try {
-      if (Object.keys(formErrors).length === 0 && isSubmit) {
-        const res = await createUserWithEmailAndPassword(auth, formValues.email, formValues.password);
+      if (Object.keys(formErrors).length === 0) {
+        const res = await createUserWithEmailAndPassword(
+          auth,
+          formValues.email,
+          formValues.password
+        );
 
         const storageRef = ref(storage, formValues.username);
         const uploadTask = uploadBytesResumable(storageRef, formValues.file);
 
-      uploadTask.on(
+        uploadTask.on(
           "state_changed",
           (snapshot) => {
             const progress =
@@ -72,31 +78,31 @@ function Register() {
                 break;
             }
           },
-        (error) => {
-          
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then( async(downloadURL) => {
-            console.log("File available at", downloadURL);
-            await updateProfile(res.user,{
-              displayName:formValues.username,
-              photoURL:downloadURL
-            })
-            // Add a new document in collection "cities"
-            await setDoc(doc(db, "users", res.user.uid), {
-              uid:res.user.uid,
-              displayName:formValues.username,
-              email:formValues.email,
-              photoURL:downloadURL,
-            });
+          (error) => {},
+          () => {
+            getDownloadURL(uploadTask.snapshot.ref).then(
+              async (downloadURL) => {
+                console.log("File available at", downloadURL);
+                await updateProfile(res.user, {
+                  displayName: formValues.username,
+                  photoURL: downloadURL,
+                });
+                // Add a new document in collection "users"
+                await setDoc(doc(db, "users", res.user.uid), {
+                  uid: res.user.uid,
+                  displayName: formValues.username,
+                  email: formValues?.email,
+                  photoURL: downloadURL,
+                  phoneNumber:formValues?.number
+                });
 
-            await setDoc(doc(db, "userChats", res.user.uid), {});
-            navigate("/login")
-          });
-        }
-      );
-      console.log(res);
-
+                await setDoc(doc(db, "userChats", res.user.uid), {});
+                navigate("/login");
+              }
+            );
+          }
+        );
+        console.log(res);
       }
     } catch (error) {
       console.log(error);
@@ -134,7 +140,21 @@ function Register() {
     if (values.file && values.file.size > 1000000) {
       errors.file = "File is Greater than 1MB";
     }
+    if (!values.number) {
+      errors.number = "Number is required!";
+    } else if (values.number.length < 10) {
+      errors.number = "Number Atleast 10 Digits";
+    }
+
     return errors;
+  };
+
+  const passwordHandle = () => {
+    if (type == "password") {
+      setType("text");
+    } else {
+      setType("password");
+    }
   };
 
   return (
@@ -185,7 +205,7 @@ function Register() {
             </p>
           )}
         </div>
-        <div className="min-h-[72px]">
+        <div className="min-h-[72px] relative">
           <input
             className={`username bg-transparent border-b-[3px] outline-none text-[#E5B8F4] font-medium h-[48px] ${
               formErrors.password
@@ -194,11 +214,23 @@ function Register() {
             }`}
             placeholder="Password"
             name="password"
-            type="password"
+            type={type}
             id="password"
             value={formValues.password}
             onChange={changeHandler}
           />
+          <svg
+            className="w-7 h-12 cursor-pointer absolute right-0 top-0"
+            fill="#C147E9"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 640 512"
+            onClick={passwordHandle}
+          >
+            {type == 'password' ? 
+              <path d="M320 400c-75.85 0-137.25-58.71-142.9-133.11L72.2 185.82c-13.79 17.3-26.48 35.59-36.72 55.59a32.35 32.35 0 0 0 0 29.19C89.71 376.41 197.07 448 320 448c26.91 0 52.87-4 77.89-10.46L346 397.39a144.13 144.13 0 0 1-26 2.61zm313.82 58.1-110.55-85.44a331.25 331.25 0 0 0 81.25-102.07 32.35 32.35 0 0 0 0-29.19C550.29 135.59 442.93 64 320 64a308.15 308.15 0 0 0-147.32 37.7L45.46 3.37A16 16 0 0 0 23 6.18L3.37 31.45A16 16 0 0 0 6.18 53.9l588.36 454.73a16 16 0 0 0 22.46-2.81l19.64-25.27a16 16 0 0 0-2.82-22.45zm-183.72-142-39.3-30.38A94.75 94.75 0 0 0 416 256a94.76 94.76 0 0 0-121.31-92.21A47.65 47.65 0 0 1 304 192a46.64 46.64 0 0 1-1.54 10l-73.61-56.89A142.31 142.31 0 0 1 320 112a143.92 143.92 0 0 1 144 144c0 21.63-5.29 41.79-13.9 60.11z" /> :
+              <path d="M572.52 241.4C518.29 135.59 410.93 64 288 64S57.68 135.64 3.48 241.41a32.35 32.35 0 0 0 0 29.19C57.71 376.41 165.07 448 288 448s230.32-71.64 284.52-177.41a32.35 32.35 0 0 0 0-29.19zM288 400a144 144 0 1 1 144-144 143.93 143.93 0 0 1-144 144zm0-240a95.31 95.31 0 0 0-25.31 3.79 47.85 47.85 0 0 1-66.9 66.9A95.78 95.78 0 1 0 288 160z"/>
+            }
+          </svg>
           {formErrors.password && (
             <p className="text-sm ml-2 mt-1 text-[#E5B8F4]">
               {formErrors.password}
@@ -218,6 +250,7 @@ function Register() {
               accept=".jpg, .jpeg, .png"
               onChange={changeHandler}
             />
+            {/* <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0S96 57.3 96 128s57.3 128 128 128zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/></svg> */}
             <img
               src={imagePath ? imagePath : file}
               className={`ml-4 h-[52px] w-[52px] ${
@@ -248,9 +281,9 @@ function Register() {
         <p>
           You do have an account?{" "}
           <Link to="/login">
-          <span className="cursor-pointer font-medium hover:underline decoration-2 decoration-pink-500 text-[#E5B8F4]">
-            Login
-          </span>
+            <span className="cursor-pointer font-medium hover:underline decoration-2 decoration-pink-500 text-[#E5B8F4]">
+              Login
+            </span>
           </Link>
         </p>
       </form>

@@ -26,7 +26,7 @@ function Search() {
     // Create a query against the collection.
     const q = query(userRef, where("displayName", "==", username));
     try {
-      const querySnapshot = await getDocs(q).then((res) => {
+      await getDocs(q).then((res) => {
         
         if (!res.empty ) {
           res.forEach((doc) => {
@@ -58,7 +58,7 @@ function Search() {
   }
 
   const handleKey =async (e) => {
-    const value = e.target.value;
+    // const value = e.target.value;
     e.code === 'Enter' && handleSearch();
   };
 
@@ -109,7 +109,12 @@ function Search() {
           type="text"
           placeholder="Find a user"
           onKeyDown={handleKey}
-          onChange={(e) => setUsername(e.target.value)}
+          onChange={(e) => {
+            setUsername(e.target.value);
+            if(e.target.value === ''){
+              setErr(false);
+            }
+          }}
           value={username}
         />
       </div>
